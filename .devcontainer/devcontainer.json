@@ -1,0 +1,51 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"name": "Ubuntu",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],	
+	"workspaceMount": "source=${localWorkspaceFolder},target=/computer_graphics,type=bind",
+	"workspaceFolder": "/computer_graphics",
+	"runArgs": [
+		"--device=/dev/dri",
+		"--group-add=39", // video group
+		"--group-add=105" // render group
+	],
+	"mounts": [
+		"source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+	],
+	"containerEnv": {
+		"DISPLAY": "${localEnv:DISPLAY}"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"llvm-vs-code-extensions.vscode-clangd",
+				"ms-vscode.cpptools",
+				"ms-vscode.cmake-tools"
+			],
+			"settings": {
+				"C_Cpp.intelliSenseEngine": "disabled",
+				"clangd.arguments": [
+					"--background-index",
+					"--clang-tidy",
+					"--header-insertion=iwyu",
+					"--completion-style=detailed",
+					"--compile-commands-dir=${workspaceFolder}/build-debug"
+        	]
+			},
+		}
+	}
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends build-essential cmake ninja-build pkg-config git curl vim clangd glslang-tools libvulkan-dev vulkan-validationlayers libwayland-dev libwayland-bin wayland-protocols libxkbcommon-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxxf86vm-dev libgl1-mesa-dev",
+	// Configure tool-specific properties.
+	// "customizations": {},
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}
