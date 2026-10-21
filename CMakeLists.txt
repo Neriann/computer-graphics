@@ -3,7 +3,12 @@ include(FetchContent)
 
 project(vulkan-starter-app LANGUAGES C CXX)
 
-add_executable(${PROJECT_NAME} source/main.cpp source/graphics_internal.cpp source/application.cpp)
+add_executable(${PROJECT_NAME}
+	source/main.cpp
+	source/graphics_internal.cpp
+	source/application.cpp
+	source/mesh.cpp
+)
 
 if(LINUX)
 	target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wno-missing-field-initializers)
@@ -82,7 +87,11 @@ target_sources(${PROJECT_NAME} PRIVATE
 
 # Compile shaders
 find_program(GLSLC_FOUND glslc)
-if(GLSLC_FOUND)
+if(NOT GLSLC_FOUND)
+	find_program(GLSLANG_FOUND glslangValidator)
+endif()
+
+if(GLSLC_FOUND OR GLSLANG_FOUND)
 	set(_SHADER_BINARIES)
 
 	macro(compile_shader SHADER_FILE)
@@ -90,12 +99,22 @@ if(GLSLC_FOUND)
 		set(SHADER_BINARY ${SHADER_FILE}.spv)
 		set(SHADER_BINARY_PATH ${CMAKE_SOURCE_DIR}/shaders/${SHADER_BINARY})
 
-		add_custom_command(
-			OUTPUT ${SHADER_BINARY_PATH}
-			COMMAND glslc ${SHADER_SOURCE} -o ${SHADER_BINARY_PATH}
-			DEPENDS ${SHADER_SOURCE}
-			COMMENT "Compiling ${SHADER_FILE} shader"
-		)
+		if(GLSLC_FOUND)
+			add_custom_command(
+				OUTPUT ${SHADER_BINARY_PATH}
+				COMMAND ${GLSLC_FOUND} ${SHADER_SOURCE} -o ${SHADER_BINARY_PATH}
+				DEPENDS ${SHADER_SOURCE}
+				COMMENT "Compiling ${SHADER_FILE} shader"
+			)
+		else()
+			add_custom_command(
+				OUTPUT ${SHADER_BINARY_PATH}
+				COMMAND ${GLSLANG_FOUND} -V --target-env vulkan1.1
+				        ${SHADER_SOURCE} -o ${SHADER_BINARY_PATH}
+				DEPENDS ${SHADER_SOURCE}
+				COMMENT "Compiling ${SHADER_FILE} shader"
+			)
+		endif()
 
 		list(APPEND _SHADER_BINARIES ${SHADER_BINARY_PATH})
 	endmacro()
@@ -103,9 +122,11 @@ if(GLSLC_FOUND)
 	# To compile shader file, use compile_shader function with a file name
 	# of a shader inside shaders directory. See example below:
 
-	# compile_shader(example.vert)
-	# compile_shader(example.frag)
+	compile_shader(shape.vert)
+	compile_shader(shape.frag)
 
 	add_custom_target(shaders DEPENDS ${_SHADER_BINARIES})
 	add_dependencies(${PROJECT_NAME} shaders)
+else()
+	message(WARNING "Neither glslc nor glslangValidator was found; shaders will not be compiled")
 endif()

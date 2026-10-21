@@ -6,3 +6,5 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     libwayland-dev libwayland-bin wayland-protocols \
     libxkbcommon-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev \
     libxxf86vm-dev libgl1-mesa-dev
+
+RUN curl -fsSL https://opencode.ai/install | bash
