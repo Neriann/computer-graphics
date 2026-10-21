@@ -4,28 +4,33 @@ layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec3 inNormal;
 
-layout(set = 0, binding = 0) uniform UniformBufferObject {
-	mat4 mvp;
-	mat4 model;
-	vec4 baseColor;
-	vec4 lightDirection;
+layout(set = 0, binding = 0) uniform SceneUniform {
+	mat4 viewProjection;
 	vec4 cameraPosition;
-} ubo;
+	vec4 ambientColor;
+	vec4 directionalDirection;
+	vec4 directionalColor;
+	vec4 lightCounts;
+} scene;
 
-layout(location = 0) out vec3 fragColor;
+layout(set = 1, binding = 0) uniform ModelUniform {
+	mat4 model;
+	vec4 albedo;
+	vec4 specularColor;
+	vec4 material;
+} model;
+
+layout(location = 0) out vec3 fragWorldPosition;
 layout(location = 1) out vec3 fragNormal;
-layout(location = 2) out vec3 fragWorldPosition;
+layout(location = 2) out vec3 fragVertexColor;
 
 void main() {
-	gl_Position = ubo.mvp * vec4(inPosition, 1.0);
-
-	vec4 world_position = ubo.model * vec4(inPosition, 1.0);
+	vec4 world_position = model.model * vec4(inPosition, 1.0);
 	fragWorldPosition = world_position.xyz;
+	gl_Position = scene.viewProjection * world_position;
 
 	// Inverse-transpose keeps normals correct under non-uniform stretching.
-	mat3 normal_matrix = mat3(transpose(inverse(ubo.model)));
+	mat3 normal_matrix = mat3(transpose(inverse(model.model)));
 	fragNormal = normal_matrix * inNormal;
-
-	// Procedural per-vertex color is multiplied by the color chosen in ImGui.
-	fragColor = inColor * ubo.baseColor.rgb;
+	fragVertexColor = inColor;
 }

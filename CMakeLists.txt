@@ -124,6 +124,8 @@ if(GLSLC_FOUND OR GLSLANG_FOUND)
 
 	compile_shader(shape.vert)
 	compile_shader(shape.frag)
+	compile_shader(debug.vert)
+	compile_shader(debug.frag)
 
 	add_custom_target(shaders DEPENDS ${_SHADER_BINARIES})
 	add_dependencies(${PROJECT_NAME} shaders)
